@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-service-viewer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-service-viewer
+  template:
+    metadata:
+      labels:
+        app: kube-service-viewer
+    spec:
+      nodeSelector: {}
+      containers:
+      - name: kube-service-viewer
+        image: kube-service-viewer:latest
+        imagePullPolicy: Always
+        env:
+        - name: API_URL
+          valueFrom:
+            secretKeyRef:
+              name: kube-config
+              key: api_url
+        - name: API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: kube-config
+              key: api_token
+        - name: PORT
+          value: "8080"
+        - name: INCLUDE_NODEPORT
+          value: "false"
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-service-viewer-service
+  annotations: {}
+spec:
+  selector:
+    app: kube-service-viewer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer

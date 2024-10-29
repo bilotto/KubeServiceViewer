@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KubeServiceViewer</title>
+    <!-- Bootstrap CSS and DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+      crossorigin="anonymous"
+    />
+    <!-- Custom Styles -->
+    <style>
+        body {
+            margin: 20px;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .dataTables_wrapper .dataTables_filter {
+            float: right;
+            text-align: right;
+        }
+        /* Ensure table headers are readable in dark mode */
+        .table thead th {
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">KubeServiceViewer</a>
+      <div class="ml-auto">
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="darkSwitch">
+          <label class="custom-control-label text-white" for="darkSwitch">Dark Mode</label>
+        </div>
+      </div>
+    </nav>
+    <!-- Container -->
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center">
+          <h1>{{ global_dict['cluster_name'] }}</h1>
+            <div>
+                <label for="namespaceFilter">Filter by Namespace:</label>
+                <select id="namespaceFilter" class="form-control">
+                    <option value="">All</option>
+                    {% for ns in global_dict['namespaces_names'] %}
+                    <option value="{{ ns }}">{{ ns }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <!-- Services Table -->
+        <table id="servicesTable" class="table table-striped table-bordered table-hover mt-3">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Service Name</th>
+                    <th>Type</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in global_dict['services'] %}
+                <tr>
+                    <td>{{ service.namespace }}</td>
+                    <td>{{ service.name }}</td>
+                    <td><span class="badge badge-primary">{{ service.port_name }}</span></td>
+                    <td><a href="{{ service.url }}" target="_blank">{{ service.url }}</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- JS Scripts -->
+    <!-- jQuery -->
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Bootstrap JS -->
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- DataTables JS -->
+    <script
+      src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Initialize DataTable and Theme Switching -->
+    <script>
+        $(document).ready(function() {
+            var table = $('#servicesTable').DataTable({
+                "pageLength": 10,
+                "lengthChange": false,
+                "order": [[0, "asc"]],
+                "columnDefs": [
+                    { "orderable": false, "targets": 3 }
+                ]
+            });
+            $('#namespaceFilter').on('change', function() {
+                table.column(0).search(this.value).draw();
+            });
+
+            // Theme Switching Logic
+            $('#darkSwitch').on('change', function() {
+              if ($(this).is(':checked')) {
+                enableDarkMode();
+              } else {
+                disableDarkMode();
+              }
+            });
+
+            // Check for saved user preference
+            if (localStorage.getItem('darkMode') === 'enabled') {
+              $('#darkSwitch').prop('checked', true);
+              enableDarkMode();
+            }
+
+            function enableDarkMode() {
+              $('body').addClass('bg-dark text-white');
+              $('table').addClass('table-dark');
+              $('.navbar').removeClass('navbar-dark bg-dark').addClass('navbar-light bg-light');
+              $('.custom-control-label').removeClass('text-white').addClass('text-dark');
+              localStorage.setItem('darkMode', 'enabled');
+            }
+
+            function disableDarkMode() {
+              $('body').removeClass('bg-dark text-white');
+              $('table').removeClass('table-dark');
+              $('.navbar').removeClass('navbar-light bg-light').addClass('navbar-dark bg-dark');
+              $('.custom-control-label').removeClass('text-dark').addClass('text-white');
+              localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+    </script>
+</body>
+</html>
